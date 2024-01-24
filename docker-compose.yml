@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres
+    container_name: ${POSTGRES_DB}_postgres
+    ports:
+      - '${DATABASE_EXPOSE_PORT:-57432}:5432'
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+volumes:
+  postgres:
+    name: db-volume

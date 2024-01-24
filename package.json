@@ -1,0 +1,26 @@
+{
+  "name": "bun-hono",
+  "version": "1.0.0",
+  "author": {
+    "name": "Nico Audy",
+    "email": "nico@gmail.com"
+  },
+  "module": "src/api.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run src/api.ts",
+    "prod": "bun run src/api.ts",
+    "dev": "bun --watch run src/api.ts",
+    "reset": "bun x prisma migrate dev --name init && bun x prisma migrate reset",
+    "push": "bun x prisma db push --force-reset",
+    "gen": "bun x prisma generate"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.7.0",
+    "hono": "^3.11.2"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "prisma": "^5.7.0"
+  }
+}
