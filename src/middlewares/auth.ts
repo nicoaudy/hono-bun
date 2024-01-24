@@ -1,5 +1,4 @@
 import { MiddlewareHandler } from 'hono'
-import { verify } from 'hono/jwt'
 import { db } from '@/utils'
 
 export const auth: MiddlewareHandler = async (c, next) => {
@@ -12,12 +11,17 @@ export const auth: MiddlewareHandler = async (c, next) => {
   if (!token) return c.json({ message: 'Badly formatted access token.' }, 401)
 
   try {
-    const decoded = await verify(token, Bun.env.JWT_ACCESS_SECRET)
-    const storedToken = await db.token.findFirst({ where: { token } })
+    // const decoded = await verify(token, Bun.env.JWT_ACCESS_SECRET)
+    // c.set('user', decoded) // Decoded token payload
 
+    const storedToken = await db.token.findFirst({ include: { user: true }, where: { token } })
     if (!storedToken) return c.json({ message: 'Invalid access token.' }, 401)
 
-    c.set('user', decoded) // Decoded token payload
+    const { user } = storedToken
+    delete user?.password
+
+    c.set('user', user)
+
     await next()
   } catch (error) {
     return c.json({ message: 'Invalid or expired access token.' }, 401)
