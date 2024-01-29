@@ -1,13 +1,25 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
+    "target": "esnext",
+    "lib": ["esnext"],
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "inlineSourceMap": true,
+    "module": "esnext",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "noImplicitAny": true,
     "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     },
-    "types": ["bun-types"]
+    "types": ["bun-types"],
+    "include": ["./src/**/*"]
   }
 }

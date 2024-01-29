@@ -1,14 +1,13 @@
 import { Hono } from 'hono'
 import { sign } from 'hono/jwt'
-import { auth } from '@/middlewares'
-import { db } from '@/utils'
-import { validator } from '../middlewares/validator'
 import { z } from 'zod'
+import { auth, validator } from '@/middlewares'
+import { db } from '@/utils'
 
 const userRouter = new Hono()
 
 userRouter.use('*', auth)
-userRouter.delete('/del/:id', async c => {
+userRouter.delete('/del/:id', async (c) => {
   const { id } = c.req.param()
   if (!id) return c.json({ message: 'The field: id is mandatory.' })
 
@@ -22,13 +21,13 @@ userRouter.delete('/del/:id', async c => {
   }
 })
 
-userRouter.get('/me', async c => {
+userRouter.get('/me', async (c) => {
   return c.json({ user: c.get('user') })
 })
 
-userRouter.get('/all', async c => {
-  const users = await db.user.findMany({})
-  const total = await db.user.count({})
+userRouter.get('/all', async (c) => {
+  const users = await db.user.findMany()
+  const total = await db.user.count()
 
   if (users) return c.json({ users, total })
 
@@ -47,7 +46,7 @@ userNoAuthRouter.post(
       password: z.string().min(6, 'Email must be at least 6 characters long.')
     })
   ),
-  async c => {
+  async (c) => {
     const data = c.req.valid('form')
 
     const hash = await Bun.password.hash(data.password)
@@ -76,8 +75,9 @@ userNoAuthRouter.post(
       password: z.string().min(6, 'Email must be at least 6 characters long.')
     })
   ),
-  async c => {
-    if (!Bun.env.JWT_ACCESS_SECRET || !Bun.env.JWT_REFRESH_SECRET) return c.json({ message: 'JWT passwords need to be configured.' })
+  async (c) => {
+    if (!Bun.env.JWT_ACCESS_SECRET || !Bun.env.JWT_REFRESH_SECRET)
+      return c.json({ message: 'JWT passwords need to be configured.' })
     const data = c.req.valid('form')
 
     const user = await db.user.findUnique({ where: { email: data.email } })
@@ -93,10 +93,16 @@ userNoAuthRouter.post(
     const payload = { sub: user.id, name: user.name, role: 'admin' }
 
     // Creation of access token with 15-minute expiration
-    const accessToken = await sign({ ...payload, iat: now, nbf: now, exp: now + 60 * minutes }, Bun.env.JWT_ACCESS_SECRET)
+    const accessToken = await sign(
+      { ...payload, iat: now, nbf: now, exp: now + 60 * minutes },
+      Bun.env.JWT_ACCESS_SECRET
+    )
 
     // Creation of refresh token with 7-day expiration
-    const refreshToken = await sign({ ...payload, iat: now, nbf: now, exp: now + 60 * 60 * 24 * days }, Bun.env.JWT_REFRESH_SECRET)
+    const refreshToken = await sign(
+      { ...payload, iat: now, nbf: now, exp: now + 60 * 60 * 24 * days },
+      Bun.env.JWT_REFRESH_SECRET
+    )
 
     await db.token.create({
       data: {
