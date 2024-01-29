@@ -6,13 +6,12 @@ export async function generateAccessToken(user: User) {
   const secret = Bun.env.JWT_ACCESS_SECRET
   if (!secret) throw new Error('JWT access password not configured.')
 
-  const payload = {
-    sub: user.id,
-    name: user.name,
-    role: 'admin'
-  }
+  const now = Math.floor(Date.now() / 1000)
+  const minutes = 15
 
-  const token = await sign(payload, secret)
+  const payload = { sub: user.id, name: user.name, role: user.role }
+  const token = await sign({ ...payload, iat: now, nbf: now, exp: now + 60 * minutes }, secret)
+
   return token
 }
 
@@ -20,36 +19,25 @@ export async function generateAccessToken(user: User) {
 // But keep him logged in if he is using the app.
 // You can change this value depending on your app logic.
 // I would go for a maximum of 7 days, and make him login again after 7 days of inactivity.
-// async function generateRefreshToken(user: User, jti: string) {
 async function generateRefreshToken(user: User) {
   const secret = Bun.env.JWT_REFRESH_SECRET
   if (!secret) throw new Error('JWT access password not configured.')
 
-  // const iat = new Date().getSeconds()
-  // const exp = iat + 21599
+  const now = Math.floor(Date.now() / 1000)
+  const days = 7
 
-  const payload = {
-    sub: user.id,
-    name: user.name,
-    role: 'admin'
-  }
+  const payload = { sub: user.id, name: user.name, role: user.role }
 
-  const token = await sign(payload, secret)
+  const refreshToken = await sign(
+    { ...payload, iat: now, nbf: now, exp: now + 60 * 60 * 24 * days },
+    secret
+  )
 
-  return token
-
-  // return jwt.sign({
-  //   userId: user.id,
-  //   jti
-  // }, process.env.JWT_REFRESH_SECRET, {
-  //   expiresIn: '8h',
-  // });
+  return refreshToken
 }
 
-//export async function generateTokens(user: User, jti: string) {
 export async function generateTokens(user: User) {
   const accessToken = await generateAccessToken(user)
-  // const refreshToken = await generateRefreshToken(user, jti)
   const refreshToken = await generateRefreshToken(user)
   return { accessToken, refreshToken }
 }
